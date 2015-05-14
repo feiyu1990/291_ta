@@ -1,0 +1,55 @@
+function [theta] = softmax_regression_mine(theta, X, y, lr)
+  %
+  % Arguments:
+  %   theta - A vector containing the parameter values to optimize.
+  %       In minFunc, theta is reshaped to a long vector.  So we need to
+  %       resize it to an n-by-(num_classes-1) matrix.
+  %       Recall that we assume theta(:,num_classes) = 0.
+  %
+  %   X - The examples stored in a matrix.  
+  %       X(i,j) is the i'th coordinate of the j'th example.
+  %   y - The label for each example.  y(j) is the j'th example's label.
+  %
+  m=size(X,2);
+  n=size(X,1);
+
+  % theta is a vector;  need to reshape to n x num_classes.
+  %theta=reshape(theta, n, []);
+  num_classes=size(theta,2)+1;
+
+  % initialize objective value and gradient.
+  f = 0;
+  g = zeros(size(theta));
+
+  %
+  % TODO:  Compute the softmax objective function and gradient using vectorized code.
+  %        Store the objective function value in 'f', and the gradient in 'g'.
+  %        Before returning g, make sure you form it back into a vector with g=g(:);
+  %
+%%% YOUR CODE HERE %%%
+  theta = cat(2,theta, zeros(n,1));
+
+f_before = Inf;
+iter = 0;
+step = 1;
+while(abs(step) >= 10e-3)
+    
+    hx = bsxfun(@rdivide, exp(theta'*X), sum(exp(theta'*X), 1));
+    I= sub2ind(size(hx), y, 1:size(hx,2));
+    f = - sum(log(hx(I)));
+    temp = -hx;
+    temp(I) = temp(I) + 1;
+    g = -X*temp';
+    g = g(:,1:num_classes-1);
+    update = g*lr;
+    step = f_before - f;
+    if (step < 0)
+        lr = lr / 2;
+    end
+    f_before = f;
+    if rem(iter, 1)==0
+        fprintf('Iteration: %d, Objective function: %f, lr: %e\n', iter, f, lr);
+    end
+    theta = theta - cat(2, update, zeros(n,1));
+    iter = iter + 1;
+end
